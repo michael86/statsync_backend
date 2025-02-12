@@ -26,12 +26,12 @@ StatSync is a sports-focused social media platform that allows users to **track 
 ````sh
 git clone https://github.com/your-username/statsync.git
 cd statsync
-```
+
 
 ## 2️⃣ Install Dependencies
 ```sh
 npm install
-```
+
 
 ## 3️⃣ Set Up Environment Variables
 Create a .env file in the root directory and add the following:
@@ -39,13 +39,13 @@ Create a .env file in the root directory and add the following:
 ```sh
 JWT_SECRET=your_super_secret_key
 DATABASE_URL=mysql://user:password@localhost:3306/statsync
-```
+
 
 ## 4️⃣ Start the Server
 
 ```sh
 npm run dev
-```
+
 Server will be running on http://localhost:5000.
 
 ### 📡 API Endpoints
