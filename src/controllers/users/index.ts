@@ -6,9 +6,10 @@ import {
   queryUserByEmail,
 } from "../../queries/userQueries";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 
 import dotenv from "dotenv";
+import { insertRefreshToken } from "../../queries/authQueries";
+import { generateJwtToken, setAuthCookies } from "../../utils/auth";
 
 dotenv.config(); // Load environment variables from .env
 
@@ -64,30 +65,29 @@ export const loginUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    const token = jwt.sign(
-      {
-        id: user[0].id,
-        email: user[0].email,
-      },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "15m" }
+    const { id } = user[0];
+    const accessToken = generateJwtToken("15m", { id, email });
+    const refreshToken = generateJwtToken("30d", { id, email });
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); //  Add 30 days to the current date
+
+    const refreshId = await insertRefreshToken(
+      user[0].id,
+      await bcrypt.hash(refreshToken, 10),
+      expiresAt
     );
 
-    res
-      .status(200)
-      .cookie("jwt", token, {
-        httpOnly: true, // prevents XSS attacks
-        secure: true, // Required when SameSite=None (only works over HTTPS)
-        sameSite: "none", //  Allows cross-origin requests (CORS)
-        maxAge: 15 * 60 * 1000, // Token expires in 15 minutes
-      })
-      .send({ status: "valid" });
+    if (!refreshId) throw new Error("Failed to insert refresh token");
+
+    setAuthCookies(res, accessToken, refreshToken);
+    res.status(200).send({ status: "valid" });
   } catch (error) {
     res.status(500).send({ status: "failed to login user, try again" });
   }
 };
 
 export const logoutUser: RequestHandler = (req, res) => {
-  res.clearCookie("jwt"); // ✅ Remove JWT from client
+  res.clearCookie("jwt"); // Remove JWT from client
   res.status(200).json({ status: "Logout successful" });
 };
