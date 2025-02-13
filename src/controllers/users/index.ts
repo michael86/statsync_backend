@@ -6,6 +6,11 @@ import {
   queryUserByEmail,
 } from "../../queries/userQueries";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables from .env
 
 type GetUsers = RequestHandler<{ id?: string }>;
 export const getUsers: GetUsers = async (req, res) => {
@@ -59,7 +64,24 @@ export const loginUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    res.status(200).send({ status: "valid" });
+    const token = jwt.sign(
+      {
+        id: user[0].id,
+        email: user[0].email,
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    res
+      .status(200)
+      .cookie("jwt", token, {
+        httpOnly: true, // ✅ Prevents XSS attacks
+        secure: true, // ✅ Required when SameSite=None (only works over HTTPS)
+        sameSite: "none", // ✅ Allows cross-origin requests (CORS)
+        maxAge: 15 * 60 * 1000, // Token expires in 15 minutes
+      })
+      .send({ status: "valid" });
   } catch (error) {
     res.status(500).send({ status: "failed to login user, try again" });
   }
