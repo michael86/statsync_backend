@@ -1,5 +1,4 @@
 import { RequestHandler } from "express";
-import { queryUserByEmail } from "../../queries/userQueries";
 
 export const registerUserValidation: RequestHandler = (req, res, next) => {
   const { email, password, username } = req.body;
@@ -16,10 +15,19 @@ export const registerUserValidation: RequestHandler = (req, res, next) => {
 export const loginUserValidation: RequestHandler = async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await queryUserByEmail(email);
-
   if (!email || !password) {
     res.status(400).send({ status: "invalid query" });
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).send({ status: "Invalid email format" });
+    return;
+  }
+
+  if (password.length < 8) {
+    res.status(400).send({ status: "Password must be at least 8 characters long" });
     return;
   }
 

@@ -9,7 +9,7 @@ import bcrypt from "bcryptjs";
 
 import dotenv from "dotenv";
 import { insertRefreshToken } from "../../queries/authQueries";
-import { generateJwtToken, setAuthCookies } from "../../utils/auth";
+import { generateJwtToken, generateRefreshToken, setAuthCookies } from "../../utils/auth";
 
 dotenv.config(); // Load environment variables from .env
 
@@ -67,10 +67,10 @@ export const loginUser: RequestHandler = async (req, res) => {
 
     const { id } = user[0];
     const accessToken = generateJwtToken("15m", { id, email });
-    const refreshToken = generateJwtToken("30d", { id, email });
+    const refreshToken = generateRefreshToken();
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); //  Add 30 days to the current date
+    expiresAt.setUTCDate(expiresAt.getUTCDate() + 30);
 
     const refreshId = await insertRefreshToken(
       user[0].id,
@@ -83,7 +83,8 @@ export const loginUser: RequestHandler = async (req, res) => {
     setAuthCookies(res, accessToken, refreshToken);
     res.status(200).send({ status: "valid" });
   } catch (error) {
-    res.status(500).send({ status: "failed to login user, try again" });
+    console.error("Login error:", error);
+    res.status(500).send({ status: "Failed to login user, try again" });
   }
 };
 

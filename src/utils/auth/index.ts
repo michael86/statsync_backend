@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { Response } from "express";
 
 interface JwtPayload {
@@ -14,6 +15,8 @@ export const generateJwtToken = (expiry: JwtExpiry, payload: JwtPayload) => {
 
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: expiry });
 };
+
+export const generateRefreshToken = () => crypto.randomBytes(64).toString("hex");
 
 export const setAuthCookies = (res: Response, accessToken: string, refreshToken: string) => {
   res
