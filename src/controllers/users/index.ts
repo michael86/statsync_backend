@@ -76,13 +76,18 @@ export const loginUser: RequestHandler = async (req, res) => {
     res
       .status(200)
       .cookie("jwt", token, {
-        httpOnly: true, // ✅ Prevents XSS attacks
-        secure: true, // ✅ Required when SameSite=None (only works over HTTPS)
-        sameSite: "none", // ✅ Allows cross-origin requests (CORS)
+        httpOnly: true, // prevents XSS attacks
+        secure: true, // Required when SameSite=None (only works over HTTPS)
+        sameSite: "none", //  Allows cross-origin requests (CORS)
         maxAge: 15 * 60 * 1000, // Token expires in 15 minutes
       })
       .send({ status: "valid" });
   } catch (error) {
     res.status(500).send({ status: "failed to login user, try again" });
   }
+};
+
+export const logoutUser: RequestHandler = (req, res) => {
+  res.clearCookie("jwt"); // ✅ Remove JWT from client
+  res.status(200).json({ status: "Logout successful" });
 };
