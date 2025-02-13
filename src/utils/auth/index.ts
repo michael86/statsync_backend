@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { Response } from "express";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 interface JwtPayload {
   id: number;
   email: string;
@@ -22,13 +24,13 @@ export const setAuthCookies = (res: Response, accessToken: string, refreshToken:
   res
     .cookie("access_token", accessToken, {
       httpOnly: true,
-      secure: true,
+      secure: isProduction,
       sameSite: "none",
       maxAge: 15 * 60 * 1000, // 15 minutes
     })
     .cookie("refresh_token", refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: isProduction,
       sameSite: "none",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
