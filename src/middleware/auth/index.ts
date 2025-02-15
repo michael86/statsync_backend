@@ -2,6 +2,7 @@ import { RequestHandler, Request } from "express";
 import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 import { selectRefreshToken } from "../../queries/authQueries";
 import bcrypt from "bcryptjs";
+import { clearAuthCookies, getClientFingerprint, invalidateSession } from "../../utils/auth";
 
 // Extend Express Request to include user and cookies properties
 interface AuthenticatedRequest extends Request {
@@ -14,6 +15,9 @@ interface AuthenticatedRequest extends Request {
     id: string;
     email: string;
     role?: string;
+  };
+  body: {
+    refresh_token?: string;
   };
 }
 
@@ -51,23 +55,35 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
   }
 };
 
-export const validateRefreshToken: RequestHandler = async (req, res, next) => {
+export const validateRefreshToken: RequestHandler = async (
+  req: AuthenticatedRequest,
+  res,
+  next
+) => {
   try {
     const { refresh_token_id } = req.cookies;
+    const { refresh_token: clientToken } = req.body;
 
-    if (!refresh_token_id) {
-      res.clearCookie("refresh_token_id", { httpOnly: true });
-      res.clearCookie("access_token", { httpOnly: true });
-      res.status(403).json({ status: "access forbidden" });
+    if (!refresh_token_id || !clientToken) {
+      invalidateSession(res, "access forbidden");
       return;
     }
 
     const refreshToken = await selectRefreshToken(refresh_token_id);
-
     if (!refreshToken) {
-      res.clearCookie("refresh_token_id", { httpOnly: true });
-      res.clearCookie("access_token", { httpOnly: true });
-      res.status(403).json({ status: "invalid refresh token" });
+      invalidateSession(res, "invalid refresh token");
+      return;
+    }
+
+    const tokenIsValid = await bcrypt.compare(clientToken, refreshToken.token_hash);
+    if (!tokenIsValid) {
+      invalidateSession(res, "invalid refresh token");
+      return;
+    }
+
+    const { deviceIp, userAgent } = getClientFingerprint(req);
+    if (deviceIp !== refreshToken.device_ip || userAgent !== refreshToken.user_agent) {
+      invalidateSession(res, "invalid refresh token");
       return;
     }
 
@@ -75,5 +91,6 @@ export const validateRefreshToken: RequestHandler = async (req, res, next) => {
   } catch (error) {
     console.error("❌ Refresh token validation error:", error);
     res.status(500).json({ status: "Server error" });
+    return;
   }
 };

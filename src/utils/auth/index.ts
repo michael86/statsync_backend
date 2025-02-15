@@ -122,3 +122,15 @@ export const generateAndStoreTokens = async (
 
   return { refreshToken };
 };
+
+/**
+ * Clears authentication cookies and sends a 403 response.
+ * @param {Response} res - Express response object.
+ * @param {string} message - The error message to send.
+ */
+export const invalidateSession = (res: Response, message: string): void => {
+  res.clearCookie("refresh_token_id", { httpOnly: true });
+  res.clearCookie("access_token", { httpOnly: true });
+  res.status(403).json({ status: message });
+  return;
+};
