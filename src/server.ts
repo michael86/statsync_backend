@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import pool from "./config/db"; // Database connection
 import userController from "./routes/users";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 dotenv.config(); // Load .env variables
 
@@ -27,6 +28,9 @@ app.use(
 
 // ✅ Middleware to read JSON bodies
 app.use(express.json());
+
+//enable cookie parser
+app.use(cookieParser());
 
 // controllers
 app.use("/users", userController);

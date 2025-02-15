@@ -1,30 +1,51 @@
-import { RequestHandler } from "express";
-import jwt, { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import { RequestHandler, Request } from "express";
+import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 
-export const validateJWT: RequestHandler = (req, res, next) => {
+// Extend Express Request to include user and cookies properties
+interface AuthenticatedRequest extends Request {
+  cookies: {
+    access_token?: string;
+    refresh_token?: string;
+  };
+  user?: {
+    id: string;
+    email: string;
+    role?: string;
+  };
+}
+
+interface CustomJwtPayload extends JwtPayload {
+  id: string;
+  email: string;
+  role?: string;
+}
+
+// JWT Middleware
+export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next) => {
   try {
-    const access_token: string = req.cookies.access_token;
-    console.log("access_token ", access_token);
-    const refresh_token: string = req.cookies.refresh_token;
-    console.log("refresh_token ", refresh_token);
+    const access_token: string | undefined = req.cookies?.access_token;
 
-    if (!access_token || !refresh_token) {
+    if (!access_token) {
       res.status(403).send();
       // Handle logic to delete stuff here
       return;
     }
 
-    jwt.verify(access_token, process.env.JWT_SECRET as string); //if expired or invalid will throw to catch
+    // Verify the access token ONCE
+    const decoded = jwt.verify(access_token, process.env.JWT_SECRET as string) as CustomJwtPayload;
+
+    // Assign the decoded token data to req.user
+    req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
 
     next();
   } catch (error) {
     if (error instanceof TokenExpiredError) {
       res.status(401).json({ error: "Token expired" });
-      //validate refresh token
+      // Validate refresh token
       return;
     } else if (error instanceof JsonWebTokenError) {
       res.status(401).json({ error: "Invalid token" });
-      // force logout
+      // Force logout
       return;
     }
 
