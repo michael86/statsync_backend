@@ -5,7 +5,6 @@ import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebto
 interface AuthenticatedRequest extends Request {
   cookies: {
     access_token?: string;
-    refresh_token?: string;
   };
   user?: {
     id: string;
