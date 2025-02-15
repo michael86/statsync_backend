@@ -6,7 +6,6 @@ import {
   queryUserByEmail,
 } from "../../queries/userQueries";
 import bcrypt from "bcryptjs";
-
 import dotenv from "dotenv";
 import { insertRefreshToken } from "../../queries/authQueries";
 import { generateJwtToken, generateRefreshToken, setAuthCookies } from "../../utils/auth";
@@ -14,6 +13,12 @@ import { generateJwtToken, generateRefreshToken, setAuthCookies } from "../../ut
 dotenv.config(); // Load environment variables from .env
 
 type GetUsers = RequestHandler<{ id?: string }>;
+
+/**
+ * Retrieves all users or a specific user by ID.
+ * @param {string} [req.params.id] - The user ID (optional).
+ * @returns {Promise<void>} Sends a JSON response with user data.
+ */
 export const getUsers: GetUsers = async (req, res) => {
   const data =
     req.params.id !== undefined ? await getUserQuery(+req.params.id) : await getUsersQuery();
@@ -27,6 +32,13 @@ type RegisterUser = RequestHandler<
   { username: string; email: string; password: string } // Request body
 >;
 
+/**
+ * Registers a new user in the database.
+ * @param {string} req.body.email - The email address of the user.
+ * @param {string} req.body.password - The plain-text password of the user.
+ * @param {string} req.body.username - The chosen username of the user.
+ * @returns {Promise<void>} Sends a success or error response.
+ */
 export const registerUser: RegisterUser = async (req, res) => {
   const { email, password, username } = req.body;
   try {
@@ -40,17 +52,22 @@ export const registerUser: RegisterUser = async (req, res) => {
 
     if (result === null) throw new Error(`Register User: ${result}`);
 
-    res.status(201).send({ status: "user registered " });
+    res.status(201).send({ status: "user registered" });
   } catch (error) {
     console.error(error);
     res.status(500).send({ status: "Failed to register user" });
   }
 };
 
+/**
+ * Authenticates a user and issues JWT & refresh tokens.
+ * @param {string} req.body.email - The user's email.
+ * @param {string} req.body.password - The user's password.
+ * @returns {Promise<void>} Sends a success response with auth tokens or an error message.
+ */
 export const loginUser: RequestHandler = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await queryUserByEmail(email);
 
     if (!user || user.length === 0) {
@@ -58,7 +75,7 @@ export const loginUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    const passwordMatch = await bcrypt.compare(password, user[0].password_hash); //Don't hash the received password, .compare() does this
+    const passwordMatch = await bcrypt.compare(password, user[0].password_hash);
 
     if (!passwordMatch) {
       res.status(401).json({ status: "Invalid credentials" });
@@ -88,6 +105,10 @@ export const loginUser: RequestHandler = async (req, res) => {
   }
 };
 
+/**
+ * Logs out the user by clearing authentication cookies.
+ * @returns {void} Sends a success response.
+ */
 export const logoutUser: RequestHandler = (req, res) => {
   res.clearCookie("jwt"); // Remove JWT from client
   res.status(200).json({ status: "Logout successful" });

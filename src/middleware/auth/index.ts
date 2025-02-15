@@ -1,10 +1,13 @@
 import { RequestHandler, Request } from "express";
 import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
+import { selectRefreshToken } from "../../queries/authQueries";
+import bcrypt from "bcryptjs";
 
 // Extend Express Request to include user and cookies properties
 interface AuthenticatedRequest extends Request {
   cookies: {
     access_token?: string;
+    refresh_token?: string;
   };
   user?: {
     id: string;
@@ -30,7 +33,7 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
       return;
     }
 
-    // Verify the access token ONCE
+    // Verify the access token
     const decoded = jwt.verify(access_token, process.env.JWT_SECRET as string) as CustomJwtPayload;
 
     // Assign the decoded token data to req.user
@@ -44,5 +47,28 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
     }
 
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const validateRefreshToken: RequestHandler = async (
+  req: AuthenticatedRequest,
+  res,
+  next
+) => {
+  try {
+    const { refresh_token } = req.cookies;
+
+    if (!refresh_token) {
+      res.status(403).send({ status: "access forbidden" });
+      //at this point the user has failed all authentification so force them to log out in the client.
+      return;
+    }
+
+    console.log("refresh_token ", refresh_token);
+    const hashedToken = await selectRefreshToken(await bcrypt.hash(refresh_token, 10));
+
+    next();
+  } catch (error) {
+    res.status(500).send({ status: "Server error" });
   }
 };

@@ -1,9 +1,11 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import pool from "./config/db"; // Database connection
-import userController from "./routes/users";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
+import userController from "./routes/users";
+import authController from "./routes/auth";
 
 dotenv.config(); // Load .env variables
 
@@ -34,6 +36,7 @@ app.use(cookieParser());
 
 // controllers
 app.use("/users", userController);
+app.use("/auth/", authController);
 
 // Basic route
 app.get("/", (req: Request, res: Response) => {
