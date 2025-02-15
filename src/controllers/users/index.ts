@@ -95,9 +95,9 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
       return;
     }
 
-    await generateAndStoreTokens(req, res, user[0].id, email);
+    const body = await generateAndStoreTokens(req, res, user[0].id, email);
 
-    res.status(200).json({ status: "success", message: "Login successful" });
+    res.status(200).json({ status: "success", message: "Login successful", body });
   } catch (error) {
     console.error("❌ Login error:", error);
     res.status(500).json({ status: "error", message: "Failed to login, please try again" });
