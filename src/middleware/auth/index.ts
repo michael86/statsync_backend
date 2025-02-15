@@ -25,8 +25,8 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
     const access_token: string | undefined = req.cookies?.access_token;
 
     if (!access_token) {
-      res.status(403).send();
-      // Handle logic to delete stuff here
+      // browser may have deleted cookie due to expiration
+      res.status(401).send({ status: "invalid token" });
       return;
     }
 
@@ -38,13 +38,8 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
 
     next();
   } catch (error) {
-    if (error instanceof TokenExpiredError) {
-      res.status(401).json({ error: "Token expired" });
-      // Validate refresh token
-      return;
-    } else if (error instanceof JsonWebTokenError) {
-      res.status(401).json({ error: "Invalid token" });
-      // Force logout
+    if (error instanceof TokenExpiredError || error instanceof JsonWebTokenError) {
+      res.status(401).json({ error: "Token invalid or expired" });
       return;
     }
 
