@@ -113,7 +113,6 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
  */
 export const logoutUser: RequestHandler = (req, res): void => {
   res.clearCookie("access_token", { httpOnly: true });
-  res.clearCookie("refresh_token", { httpOnly: true });
   res.clearCookie("refresh_token_id", { httpOnly: true });
 
   res.status(200).json({ status: "success", message: "Logout successful" });

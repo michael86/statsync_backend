@@ -8,6 +8,7 @@ interface AuthenticatedRequest extends Request {
   cookies: {
     access_token?: string;
     refresh_token?: string;
+    refresh_token_id?: string;
   };
   user?: {
     id: string;
@@ -50,25 +51,29 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
   }
 };
 
-export const validateRefreshToken: RequestHandler = async (
-  req: AuthenticatedRequest,
-  res,
-  next
-) => {
+export const validateRefreshToken: RequestHandler = async (req, res, next) => {
   try {
-    const { refresh_token } = req.cookies;
+    const { refresh_token_id } = req.cookies;
 
-    if (!refresh_token) {
-      res.status(403).send({ status: "access forbidden" });
-      //at this point the user has failed all authentification so force them to log out in the client.
+    if (!refresh_token_id) {
+      res.clearCookie("refresh_token_id", { httpOnly: true });
+      res.clearCookie("access_token", { httpOnly: true });
+      res.status(403).json({ status: "access forbidden" });
       return;
     }
 
-    console.log("refresh_token ", refresh_token);
-    const hashedToken = await selectRefreshToken(await bcrypt.hash(refresh_token, 10));
+    const refreshToken = await selectRefreshToken(refresh_token_id);
+
+    if (!refreshToken) {
+      res.clearCookie("refresh_token_id", { httpOnly: true });
+      res.clearCookie("access_token", { httpOnly: true });
+      res.status(403).json({ status: "invalid refresh token" });
+      return;
+    }
 
     next();
   } catch (error) {
-    res.status(500).send({ status: "Server error" });
+    console.error("❌ Refresh token validation error:", error);
+    res.status(500).json({ status: "Server error" });
   }
 };

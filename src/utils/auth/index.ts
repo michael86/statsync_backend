@@ -12,7 +12,7 @@ interface JwtPayload {
   email: string;
 }
 
-type JwtExpiry = "15m" | "30m" | "1h" | "6h" | "12h" | "24h" | "30d";
+type JwtExpiry = "1m" | "15m" | "30m" | "1h" | "6h" | "12h" | "24h" | "30d";
 
 /**
  * Generates a JWT (JSON Web Token) for user authentication.
@@ -96,7 +96,7 @@ export const generateAndStoreTokens = async (
 ): Promise<{ refreshToken: string }> => {
   const { deviceIp, userAgent } = getClientFingerprint(req);
 
-  const accessToken = generateJwtToken("15m", { id: userId, email });
+  const accessToken = generateJwtToken("1m", { id: userId, email });
   const { uuid: refreshUid, refreshToken } = generateRefreshToken();
 
   const expiresAt = new Date();
@@ -117,15 +117,7 @@ export const generateAndStoreTokens = async (
 
   if (!refreshTokenId) throw new Error("Failed to insert refresh token");
 
-  // Store refresh_token_id in HTTP-only cookie, not the actual token
-  res.cookie("refresh_token_id", refreshTokenId, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "strict",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-  });
-
-  // Store the actual refresh token in memory, only accessible by the frontend
+  // Store the actual refresh token id in memory, only accessible by the frontend
   setAuthCookies(res, accessToken, refreshUid);
 
   return { refreshToken };

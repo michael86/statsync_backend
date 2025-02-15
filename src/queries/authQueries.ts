@@ -41,20 +41,20 @@ export const insertRefreshToken = async (
  * @param {string} hashedToken - The hashed refresh token to check.
  * @returns {Promise<boolean>} `true` if the token exists, otherwise `false`.
  */
-export const selectRefreshToken = async (hashedToken: string): Promise<boolean> => {
+export const selectRefreshToken = async (tokenId: string): Promise<string | void> => {
   try {
-    console.log("Checking hashedToken:", hashedToken);
-
-    const [token] = await pool.query<RowDataPacket[]>(
-      "SELECT token_hash FROM refresh_tokens WHERE token_hash = ?",
-      [hashedToken]
+    const [result] = await pool.query<RowDataPacket[]>(
+      "SELECT token_hash FROM refresh_tokens WHERE refresh_token_id = ?",
+      [tokenId]
     );
 
-    console.log("Query result:", token);
+    if (result.length > 0) {
+      return result[0].token_hash; // ✅ Return the hashed refresh token
+    }
 
-    return token.length > 0;
+    return; // ✅ Explicitly return void if not found
   } catch (error) {
     console.error("❌ Failed to select refresh token:", error);
-    return false;
+    return; // ✅ Return void on error
   }
 };
