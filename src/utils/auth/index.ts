@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { insertRefreshToken } from "../../queries/authQueries";
+import { v4 as uuidv4 } from "uuid";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -33,7 +34,9 @@ export const generateJwtToken = (expiry: JwtExpiry, payload: JwtPayload): string
  *
  * @returns {string} A 128-character hexadecimal string for the refresh token.
  */
-export const generateRefreshToken = (): string => crypto.randomBytes(64).toString("hex");
+export const generateRefreshToken = () => {
+  return { uuid: uuidv4(), refreshToken: crypto.randomBytes(64).toString("hex") };
+};
 
 /**
  * Extracts the client's device IP and User-Agent from the request.
@@ -56,7 +59,11 @@ export const getClientFingerprint = (req: Request): { deviceIp: string; userAgen
  * @param {string} accessToken - The JWT access token.
  * @param {string} refreshToken - The refresh token.
  */
-export const setAuthCookies = (res: Response, accessToken: string, refreshToken: string): void => {
+export const setAuthCookies = (
+  res: Response,
+  accessToken: string,
+  refreshTokenId: string
+): void => {
   res
     .cookie("access_token", accessToken, {
       httpOnly: true,
@@ -64,7 +71,7 @@ export const setAuthCookies = (res: Response, accessToken: string, refreshToken:
       sameSite: "none",
       maxAge: 15 * 60 * 1000, // 15 minutes
     })
-    .cookie("refresh_token", refreshToken, {
+    .cookie("refresh_token_id", refreshTokenId, {
       httpOnly: true,
       secure: isProduction,
       sameSite: "none",
@@ -86,11 +93,11 @@ export const generateAndStoreTokens = async (
   res: Response,
   userId: number,
   email: string
-): Promise<void> => {
+): Promise<{ refreshToken: string }> => {
   const { deviceIp, userAgent } = getClientFingerprint(req);
 
   const accessToken = generateJwtToken("15m", { id: userId, email });
-  const refreshToken = generateRefreshToken();
+  const { uuid: refreshUid, refreshToken } = generateRefreshToken();
 
   const expiresAt = new Date();
   expiresAt.setUTCDate(expiresAt.getUTCDate() + 30);
@@ -101,6 +108,7 @@ export const generateAndStoreTokens = async (
   // Insert refresh token into DB and get refresh_token_id
   const refreshTokenId = await insertRefreshToken(
     userId,
+    refreshUid,
     hashedRefreshToken,
     expiresAt,
     deviceIp,
@@ -118,5 +126,7 @@ export const generateAndStoreTokens = async (
   });
 
   // Store the actual refresh token in memory, only accessible by the frontend
-  setAuthCookies(res, accessToken, refreshToken);
+  setAuthCookies(res, accessToken, refreshUid);
+
+  return { refreshToken };
 };

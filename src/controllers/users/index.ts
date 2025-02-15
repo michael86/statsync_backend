@@ -62,9 +62,9 @@ export const registerUser: RegisterUser = async (req, res): Promise<void> => {
       throw new Error(`Register User Failed: ${result}`);
     }
 
-    await generateAndStoreTokens(req, res, result, email);
+    const body = await generateAndStoreTokens(req, res, result, email);
 
-    res.status(201).json({ status: "success", message: "User registered" });
+    res.status(201).json({ status: "success", message: "User registered", body });
   } catch (error) {
     console.error("❌ Registration error:", error);
     res.status(500).json({ status: "error", message: "Failed to register user" });

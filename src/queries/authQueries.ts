@@ -10,18 +10,17 @@ import { v4 as uuidv4 } from "uuid";
  * @param {Date} expires - The expiration date of the refresh token.
  * @param {string} deviceIp - The user's IP address.
  * @param {string} userAgent - The user's browser and OS information.
- * @returns {Promise<number | undefined>} The insert ID if successful, otherwise undefined.
+ * @returns {Promise<string | undefined>} The `refresh_token_id` if successful, otherwise `undefined`.
  */
 export const insertRefreshToken = async (
   userId: number,
+  refreshTokenId: string,
   tokenHash: string,
   expires: Date,
   deviceIp: string,
   userAgent: string
 ): Promise<string | undefined> => {
   try {
-    const refreshTokenId = uuidv4(); // Generate unique token ID
-
     const [result] = await pool.query<ResultSetHeader>(
       `INSERT INTO refresh_tokens 
       (user_id, refresh_token_id, token_hash, device_ip, user_agent, last_used_at, refresh_count, expires_at) 
@@ -29,7 +28,6 @@ export const insertRefreshToken = async (
       [userId, refreshTokenId, tokenHash, deviceIp, userAgent, expires]
     );
 
-    // If insertion was successful, return `refresh_token_id`
     return result.affectedRows > 0 ? refreshTokenId : undefined;
   } catch (error) {
     console.error("❌ Failed to insert refresh token:", error);
@@ -37,19 +35,26 @@ export const insertRefreshToken = async (
   }
 };
 
-export const selectRefreshToken = async (hashedToken: string) => {
+/**
+ * Checks if a hashed refresh token exists in the database.
+ *
+ * @param {string} hashedToken - The hashed refresh token to check.
+ * @returns {Promise<boolean>} `true` if the token exists, otherwise `false`.
+ */
+export const selectRefreshToken = async (hashedToken: string): Promise<boolean> => {
   try {
-    console.log("hashedToken ", hashedToken);
+    console.log("Checking hashedToken:", hashedToken);
+
     const [token] = await pool.query<RowDataPacket[]>(
-      "SELECT token_hash FROM refresh_tokens where token_hash = ?",
+      "SELECT token_hash FROM refresh_tokens WHERE token_hash = ?",
       [hashedToken]
     );
 
-    console.log("result ", token);
+    console.log("Query result:", token);
 
     return token.length > 0;
   } catch (error) {
-    console.error(error);
-    return;
+    console.error("❌ Failed to select refresh token:", error);
+    return false;
   }
 };
