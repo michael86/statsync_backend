@@ -134,3 +134,25 @@ export const invalidateSession = (res: Response, message: string): void => {
   res.status(403).json({ status: message });
   return;
 };
+
+/**
+ * Validates an email address format.
+ *
+ * @param {string} email - The email address to validate.
+ * @returns {boolean} True if the email is valid, otherwise false.
+ */
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+/**
+ * Validates a password against security requirements.
+ *
+ * @param {string} password - The password to validate.
+ * @returns {boolean} True if the password meets the criteria, otherwise false.
+ */
+export const isValidPassword = (password: string): boolean => {
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  return passwordRegex.test(password);
+};

@@ -1,3 +1,4 @@
+import { isValidEmail, isValidPassword } from "../../utils/auth";
 import { RequestHandler } from "express";
 
 /**
@@ -60,26 +61,4 @@ export const loginUserValidation: RequestHandler = (req, res, next) => {
   }
 
   next();
-};
-
-/**
- * Validates an email address format.
- *
- * @param {string} email - The email address to validate.
- * @returns {boolean} True if the email is valid, otherwise false.
- */
-const isValidEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-/**
- * Validates a password against security requirements.
- *
- * @param {string} password - The password to validate.
- * @returns {boolean} True if the password meets the criteria, otherwise false.
- */
-const isValidPassword = (password: string): boolean => {
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  return passwordRegex.test(password);
 };

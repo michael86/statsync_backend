@@ -74,3 +74,29 @@ export const selectRefreshToken = async (
     return;
   }
 };
+
+/**
+ * Deletes a refresh token from the database by its ID.
+ * @param {string} refreshTokenId - The token ID to delete.
+ * @return {Promise<boolean>} - Returns true if successful, false if no rows were deleted.
+ */
+export const deleteRefreshToken = async (refreshTokenId: string): Promise<boolean> => {
+  try {
+    // Explicitly define the return type of `pool.query()`
+    const [result] = await pool.query<ResultSetHeader>(
+      "DELETE FROM refresh_tokens WHERE refresh_token_id = ?",
+      [refreshTokenId]
+    );
+
+    if (result.affectedRows > 0) {
+      console.log(`✅ Refresh token deleted: ${refreshTokenId}`);
+      return true;
+    } else {
+      console.warn(`⚠️ No refresh token found for ID: ${refreshTokenId}`);
+      return false;
+    }
+  } catch (error) {
+    console.error("❌ Failed to delete refresh token:", error);
+    return false;
+  }
+};

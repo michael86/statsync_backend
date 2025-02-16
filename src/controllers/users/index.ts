@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 
 import { generateAndStoreTokens } from "../../utils/auth";
+import { deleteRefreshToken } from "../../queries/authQueries";
 
 dotenv.config(); // Load environment variables from .env
 
@@ -111,9 +112,20 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
  * @param {Response} res - Express response object.
  * @returns {void} Sends a success response.
  */
-export const logoutUser: RequestHandler = (req, res): void => {
-  res.clearCookie("access_token", { httpOnly: true });
-  res.clearCookie("refresh_token_id", { httpOnly: true });
+export const logoutUser: RequestHandler = async (req, res) => {
+  try {
+    const tokenId = req.cookies.refresh_token_id;
 
-  res.status(200).json({ status: "success", message: "Logout successful" });
+    if (!tokenId) throw new Error("No token id provided");
+
+    res.clearCookie("access_token", { httpOnly: true });
+    res.clearCookie("refresh_token_id", { httpOnly: true });
+    const deleted = await deleteRefreshToken(tokenId);
+    if (!deleted) throw new Error("Failed to delete refresh token");
+
+    res.status(200).json({ status: "success", message: "Logout successful" });
+  } catch (error) {
+    console.error("Failed to log user out ", error);
+    res.status(500).json({ status: "error", message: error });
+  }
 };
