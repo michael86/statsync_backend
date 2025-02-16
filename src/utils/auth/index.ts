@@ -96,7 +96,7 @@ export const generateAndStoreTokens = async (
 ): Promise<{ refreshToken: string; accessToken: string; refreshTokenId: string }> => {
   const { deviceIp, userAgent } = getClientFingerprint(req);
 
-  const accessToken = generateJwtToken("1m", { id: userId, email });
+  const accessToken = generateJwtToken("15m", { id: userId, email });
   const { uuid: refreshUid, refreshToken } = generateRefreshToken();
 
   const expiresAt = new Date();

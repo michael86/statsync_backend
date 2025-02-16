@@ -1,6 +1,6 @@
 import { RequestHandler, Request } from "express";
 import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
-import { selectRefreshToken } from "../../queries/authQueries";
+import { deleteRefreshToken, selectRefreshToken } from "../../queries/authQueries";
 import bcrypt from "bcryptjs";
 import { getClientFingerprint, invalidateSession } from "../../utils/auth";
 

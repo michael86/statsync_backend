@@ -65,7 +65,13 @@ export const registerUser: RegisterUser = async (req, res): Promise<void> => {
 
     const body = await generateAndStoreTokens(req, res, result, email);
 
-    res.status(201).json({ status: "success", message: "User registered", body });
+    res
+      .status(201)
+      .json({
+        status: "success",
+        message: "User registered",
+        body: { refresh_token: body.refreshToken },
+      });
   } catch (error) {
     console.error("❌ Registration error:", error);
     res.status(500).json({ status: "error", message: "Failed to register user" });
@@ -98,7 +104,11 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
 
     const body = await generateAndStoreTokens(req, res, user[0].id, email);
 
-    res.status(200).json({ status: "success", message: "Login successful", body });
+    res.status(200).json({
+      status: "success",
+      message: "Login successful",
+      body: { refresh_token: body.refreshToken },
+    });
   } catch (error) {
     console.error("❌ Login error:", error);
     res.status(500).json({ status: "error", message: "Failed to login, please try again" });
