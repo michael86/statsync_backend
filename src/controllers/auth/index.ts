@@ -1,6 +1,5 @@
 import { Request, RequestHandler } from "express";
-import { generateAndStoreTokens, generateJwtToken, generateRefreshToken } from "../../utils/auth";
-import jwt from "jsonwebtoken";
+import { generateAndStoreTokens } from "../../utils/auth";
 import { selectUserEmail } from "../../queries/userQueries";
 
 interface RefreshRequest extends Request {
