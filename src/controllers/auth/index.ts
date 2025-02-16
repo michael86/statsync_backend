@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { generateAndStoreTokens } from "../../utils/auth";
 import { selectUserEmail } from "../../queries/userQueries";
-import { AuthenticatedRequest } from "../../middleware/auth";
+import { AuthenticatedRequest } from "../../types/authTypes";
 import { deleteRefreshToken } from "../../queries/authQueries";
 
 export const issueRefreshToken: RequestHandler = async (req: AuthenticatedRequest, res, next) => {

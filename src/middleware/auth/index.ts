@@ -3,23 +3,7 @@ import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebto
 import { deleteRefreshToken, selectRefreshToken } from "../../queries/authQueries";
 import bcrypt from "bcryptjs";
 import { getClientFingerprint, invalidateSession } from "../../utils/auth";
-
-// Extend Express Request to include user and cookies properties
-export interface AuthenticatedRequest extends Request {
-  cookies: {
-    access_token?: string;
-    refresh_token?: string;
-    refresh_token_id?: string;
-  };
-  user?: {
-    id?: string;
-    email?: string;
-    role?: string;
-  };
-  body: {
-    refresh_token?: string;
-  };
-}
+import { AuthenticatedRequest } from "../../types/authTypes";
 
 interface CustomJwtPayload extends JwtPayload {
   id: string;
