@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { getClientFingerprint, invalidateSession } from "../../utils/auth";
 
 // Extend Express Request to include user and cookies properties
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   cookies: {
     access_token?: string;
     refresh_token?: string;

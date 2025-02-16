@@ -1,16 +1,11 @@
-import { Request, RequestHandler } from "express";
+import { RequestHandler } from "express";
 import { generateAndStoreTokens } from "../../utils/auth";
 import { selectUserEmail } from "../../queries/userQueries";
+import { AuthenticatedRequest } from "src/middleware/auth";
 
-interface RefreshRequest extends Request {
-  headers: Request["headers"] & {
-    user_id?: string;
-  };
-}
-
-export const issueRefreshToken: RequestHandler = async (req: RefreshRequest, res, next) => {
+export const issueRefreshToken: RequestHandler = async (req: AuthenticatedRequest, res, next) => {
   try {
-    const userId = Number(req.headers.user_id);
+    const userId = Number(req.user?.id);
 
     if (!userId) throw new Error("User id was not present in the header");
 

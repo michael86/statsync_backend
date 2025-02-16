@@ -42,7 +42,7 @@ export const insertRefreshToken = async (
  * @returns {Promise<boolean>} `true` if the token exists, otherwise `false`.
  */
 export const selectRefreshToken = async (
-  tokenId: string
+  refreshTokenId: string
 ): Promise<{
   user_id: string;
   token_hash: string;
@@ -52,23 +52,24 @@ export const selectRefreshToken = async (
   refresh_count: number;
 } | void> => {
   try {
-    const [result] = await pool.query<RowDataPacket[]>(
-      "SELECT user_id, token_hash, device_ip, user_agent, last_used_at, refresh_count FROM refresh_tokens WHERE refresh_token_id = ?",
-      [tokenId]
+    const [rows] = await pool.query<RowDataPacket[]>(
+      "SELECT * FROM refresh_tokens WHERE refresh_token_id = ? AND expires_at > NOW()",
+      [refreshTokenId]
     );
 
-    if (result.length > 0) {
-      return result[0] as {
-        user_id: string;
-        token_hash: string;
-        device_ip: string;
-        user_agent: string;
-        last_used_at: Date;
-        refresh_count: number;
-      };
+    if (rows.length === 0) {
+      console.warn(`⚠️ Refresh token not found or expired: ${refreshTokenId}`);
+      return;
     }
 
-    return;
+    return rows[0] as {
+      user_id: string;
+      token_hash: string;
+      device_ip: string;
+      user_agent: string;
+      last_used_at: Date;
+      refresh_count: number;
+    };
   } catch (error) {
     console.error("❌ Failed to select refresh token:", error);
     return;

@@ -120,8 +120,7 @@ export const logoutUser: RequestHandler = async (req, res) => {
 
     res.clearCookie("access_token", { httpOnly: true });
     res.clearCookie("refresh_token_id", { httpOnly: true });
-    const deleted = await deleteRefreshToken(tokenId);
-    if (!deleted) throw new Error("Failed to delete refresh token");
+    await deleteRefreshToken(tokenId);
 
     res.status(200).json({ status: "success", message: "Logout successful" });
   } catch (error) {

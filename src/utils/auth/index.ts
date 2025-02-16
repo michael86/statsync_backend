@@ -136,13 +136,18 @@ export const invalidateSession = async (
 ): Promise<void> => {
   res.clearCookie("refresh_token_id", { httpOnly: true });
   res.clearCookie("access_token", { httpOnly: true });
+
   if (tokenId) {
     const deleted = await deleteRefreshToken(tokenId);
 
-    if (!deleted) throw new Error("Failed to delete refreshId");
+    if (!deleted) {
+      console.warn(`⚠️ No refresh token found for ID: ${tokenId}`);
+      res.status(403).json({ status: "invalid refresh token" });
+      return;
+    }
   }
+
   res.status(403).json({ status: message });
-  return;
 };
 
 /**
