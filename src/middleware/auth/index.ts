@@ -2,7 +2,7 @@ import { RequestHandler, Request } from "express";
 import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 import { selectRefreshToken } from "../../queries/authQueries";
 import bcrypt from "bcryptjs";
-import { clearAuthCookies, getClientFingerprint, invalidateSession } from "../../utils/auth";
+import { getClientFingerprint, invalidateSession } from "../../utils/auth";
 
 // Extend Express Request to include user and cookies properties
 interface AuthenticatedRequest extends Request {
@@ -86,6 +86,8 @@ export const validateRefreshToken: RequestHandler = async (
       invalidateSession(res, "invalid refresh token");
       return;
     }
+
+    (req.headers as any)["user_id"] = refreshToken.user_id;
 
     next();
   } catch (error) {

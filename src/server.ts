@@ -10,7 +10,6 @@ import authController from "./routes/auth";
 dotenv.config(); // Load .env variables
 
 const app = express();
-const port = process.env.PORT || 5000; // Default to 5000 if PORT is undefined
 
 // Log database connection status
 pool
@@ -38,12 +37,12 @@ app.use(cookieParser());
 app.use("/users", userController);
 app.use("/auth/", authController);
 
-// Basic route
-app.get("/", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
-});
+// Start server only if NOT in test mode
+if (process.env.NODE_ENV !== "test") {
+  const PORT = process.env.PORT || 5000;
+  const server = app.listen(PORT, () => {
+    console.log(`✅ Server is running at http://localhost:${PORT}`);
+  });
+}
 
-// Start server
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+export { app, pool };

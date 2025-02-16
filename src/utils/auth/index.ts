@@ -93,7 +93,7 @@ export const generateAndStoreTokens = async (
   res: Response,
   userId: number,
   email: string
-): Promise<{ refreshToken: string }> => {
+): Promise<{ refreshToken: string; accessToken: string; refreshTokenId: string }> => {
   const { deviceIp, userAgent } = getClientFingerprint(req);
 
   const accessToken = generateJwtToken("1m", { id: userId, email });
@@ -120,7 +120,7 @@ export const generateAndStoreTokens = async (
   // Store the actual refresh token id in memory, only accessible by the frontend
   setAuthCookies(res, accessToken, refreshUid);
 
-  return { refreshToken };
+  return { refreshToken, accessToken, refreshTokenId };
 };
 
 /**

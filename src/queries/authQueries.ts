@@ -44,6 +44,7 @@ export const insertRefreshToken = async (
 export const selectRefreshToken = async (
   tokenId: string
 ): Promise<{
+  user_id: string;
   token_hash: string;
   device_ip: string;
   user_agent: string;
@@ -52,12 +53,13 @@ export const selectRefreshToken = async (
 } | void> => {
   try {
     const [result] = await pool.query<RowDataPacket[]>(
-      "SELECT token_hash, device_ip, user_agent, last_used_at, refresh_count FROM refresh_tokens WHERE refresh_token_id = ?",
+      "SELECT user_id, token_hash, device_ip, user_agent, last_used_at, refresh_count FROM refresh_tokens WHERE refresh_token_id = ?",
       [tokenId]
     );
 
     if (result.length > 0) {
       return result[0] as {
+        user_id: string;
         token_hash: string;
         device_ip: string;
         user_agent: string;

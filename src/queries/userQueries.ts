@@ -15,6 +15,10 @@ type UserRow = {
   created_at: Date; // ✅ Corrected from number to Date
 } & RowDataPacket; // ✅ Ensures it's treated as a RowDataPacket
 
+type UserEmailRow = {
+  email: string;
+} & RowDataPacket; // ✅ Ensures it's treated as a RowDataPacket
+
 type QueryUser = (email: string) => Promise<UserRow[] | null>;
 
 /**
@@ -94,5 +98,22 @@ export const queryUserByEmail: QueryUser = async (email) => {
   } catch (error) {
     console.error("Database Error:", error);
     return null;
+  }
+};
+
+export const selectUserEmail = async (userId: number): Promise<string | void> => {
+  try {
+    const [user] = await pool.query<UserEmailRow[]>("SELECT email FROM users WHERE id = ?", [
+      userId,
+    ]);
+
+    if (user.length === 0) {
+      return;
+    }
+
+    return user[0].email; // ✅ Safe access, no `.length` error
+  } catch (error) {
+    console.error("❌ Error selecting user email:", error);
+    return;
   }
 };
