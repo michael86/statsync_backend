@@ -1,75 +1,77 @@
-# 🏆 StatSync - Sports Social Media Platform
+# StatSync 🏆
 
-StatSync is a sports-focused social media platform that allows users to **track stats, connect with others, arrange meetups, and share achievements**. Initially focusing on **fishing**, the platform will expand to other sports like **golf**.
+**StatSync** is a social media platform designed for sports hobbyists, starting with fishing and expanding to other sports like golf. The platform allows users to **connect, compare stats, arrange meetups, find locations, and more**.
 
-## 🌟 Features
+## 🚀 Features
 
-- ✅ **User Authentication** - Register, login, logout with JWT-based authentication.
-- ✅ **Password Security** - Passwords securely hashed using `bcryptjs`.
-- ✅ **JWT Blacklist on Logout** - Tokens stored in `node-cache` for secure logout.
-- ✅ **RESTful API** - Structured API endpoints with best practices.
-- ✅ **Meetups & Leaderboards** _(Upcoming)_ - Connect with other users and compare stats.
+- **User Authentication** (JWT-based login, register, logout)
+- **Refresh Token Management** (Multiple devices supported, one refresh token per device)
+- **Session Management** (View and manage active sessions) (Coming soon)
+- **Automated Token Cleanup** (Cron job for expired refresh tokens) (Coming soon)
+- **User Profiles & Stats Tracking** (Coming soon)
+- **Meetup & Social Features** (Coming soon)
+- **AI-Based Recommendations** (Future goal)
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React 19 _(Planned)_
-- **Backend:** Node.js, Express.js, TypeScript
-- **Database:** MySQL (via XAMPP)
-- **Authentication:** JSON Web Tokens (JWT), `bcryptjs`
-- **Caching:** `node-cache` _(Alternative to Redis for JWT Blacklisting)_
-- **Deployment:** _(To be decided: Vercel, DigitalOcean, AWS)_
+- **Frontend:** React 19 (with Chakra UI planned) (Coming soon)
+- **Backend:** Node.js, Express.js
+- **Database:** MySQL (XAMPP)
+- **Authentication:** JWT with refresh token management
+- **Future Expansion:** Mobile app version planned
 
-## 🚀 Getting Started
+## 📌 Installation
 
-### 1️⃣ Clone the Repository
+### **1. Clone the Repository**
 
-````sh
-git clone https://github.com/your-username/statsync.git
+```bash
+git clone https://github.com/yourusername/statsync.git
 cd statsync
+```
 
+### **2. Backend Setup**
 
-## 2️⃣ Install Dependencies
-```sh
+```bash
+cd backend
 npm install
+```
 
+- Create a `.env` file and add necessary environment variables (DB credentials, JWT secrets).
+- Start the backend:
 
-## 3️⃣ Set Up Environment Variables
-Create a .env file in the root directory and add the following:
-
-```sh
-JWT_SECRET=your_super_secret_key
-DATABASE_URL=mysql://user:password@localhost:3306/statsync
-
-
-## 4️⃣ Start the Server
-
-```sh
+```bash
 npm run dev
+```
 
-Server will be running on http://localhost:5000.
+### **3. Frontend Setup**
 
-### 📡 API Endpoints
-Method	Endpoint	Description
-POST	/users/register	Register a new user
-POST	/users/login	Authenticate & receive JWT
-POST	/users/logout	Blacklist JWT & log out
-GET	/leaderboards	Retrieve leaderboards (Upcoming)
-POST	/meetups	Create or join meetups (Upcoming)
+```bash
+cd ../frontend
+npm install
+npm start
+```
 
-###🔒 Security & Authentication
+## 🔑 Authentication Flow
 
-Password Hashing: All passwords are securely hashed before storage.
-JWT-Based Auth: Authentication is handled using access tokens.
-Logout Blacklisting: JWTs are stored in node-cache to prevent reuse after logout.
+1. User logs in and receives an **access token** (short-lived) and **refresh token** (long-lived).
+2. When the **access token expires**, the frontend silently requests a new one using the **refresh token**.
+3. If the **refresh token is expired**, the user is logged out and redirected to log in again.
+4. Users can view and manage **active sessions**, logging out of specific devices if needed.
 
-###🚀 Future Enhancements
-Real-time Stats Tracking (Upcoming)
-Push Notifications for Meetups (Upcoming)
-Mobile App Support (Planned)
+## 🏗️ Roadmap
 
-###🤝 Contributing
-Feel free to fork this repo and submit a pull request with any improvements.
+- [x] User authentication system
+- [ ] Refresh token security improvements
+- [ ] Session management (logout from active sessions)
+- [ ] User profiles & stats tracking
+- [ ] Meetup & location discovery
+- [ ] AI-based personalized recommendations
+- [ ] Mobile app version
 
-###📝 License
-This project is licensed under MIT License.
-````
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to submit pull requests or report issues.
+
+## 📜 License
+
+This project is licensed under the MIT License.
