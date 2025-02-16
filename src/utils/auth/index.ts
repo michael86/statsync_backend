@@ -2,7 +2,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
-import { insertRefreshToken } from "../../queries/authQueries";
+import { deleteRefreshToken, insertRefreshToken } from "../../queries/authQueries";
 import { v4 as uuidv4 } from "uuid";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -127,10 +127,20 @@ export const generateAndStoreTokens = async (
  * Clears authentication cookies and sends a 403 response.
  * @param {Response} res - Express response object.
  * @param {string} message - The error message to send.
+ * @param {string} tokenId - The refresh tokens id.
  */
-export const invalidateSession = (res: Response, message: string): void => {
+export const invalidateSession = async (
+  res: Response,
+  message: string,
+  tokenId?: string
+): Promise<void> => {
   res.clearCookie("refresh_token_id", { httpOnly: true });
   res.clearCookie("access_token", { httpOnly: true });
+  if (tokenId) {
+    const deleted = await deleteRefreshToken(tokenId);
+
+    if (!deleted) throw new Error("Failed to delete refreshId");
+  }
   res.status(403).json({ status: message });
   return;
 };

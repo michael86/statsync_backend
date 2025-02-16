@@ -12,8 +12,8 @@ interface AuthenticatedRequest extends Request {
     refresh_token_id?: string;
   };
   user?: {
-    id: string;
-    email: string;
+    id?: string;
+    email?: string;
     role?: string;
   };
   body: {
@@ -65,29 +65,29 @@ export const validateRefreshToken: RequestHandler = async (
     const { refresh_token: clientToken } = req.body;
 
     if (!refresh_token_id || !clientToken) {
-      invalidateSession(res, "access forbidden");
+      await invalidateSession(res, "access forbidden", refresh_token_id);
       return;
     }
 
     const refreshToken = await selectRefreshToken(refresh_token_id);
     if (!refreshToken) {
-      invalidateSession(res, "invalid refresh token");
+      await invalidateSession(res, "invalid refresh token", refresh_token_id);
       return;
     }
 
     const tokenIsValid = await bcrypt.compare(clientToken, refreshToken.token_hash);
     if (!tokenIsValid) {
-      invalidateSession(res, "invalid refresh token");
+      await invalidateSession(res, "invalid refresh token", refresh_token_id);
       return;
     }
 
     const { deviceIp, userAgent } = getClientFingerprint(req);
     if (deviceIp !== refreshToken.device_ip || userAgent !== refreshToken.user_agent) {
-      invalidateSession(res, "invalid refresh token");
+      await invalidateSession(res, "invalid refresh token", refresh_token_id);
       return;
     }
 
-    (req.headers as any)["user_id"] = refreshToken.user_id;
+    (req as AuthenticatedRequest).user = { id: refreshToken.user_id };
 
     next();
   } catch (error) {
