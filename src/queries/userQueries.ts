@@ -1,25 +1,12 @@
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
+import { QueryUser, SelectUserEmail, UserEmailRow, UserRow } from "src/types/queryTypes";
 
 type RegisterUser = (
   email: string,
   password: string,
   username: string
 ) => Promise<number | "DUPLICATE_ENTRY" | null>;
-
-type UserRow = {
-  id: number;
-  username: string;
-  email: string;
-  password_hash: string;
-  created_at: Date; // ✅ Corrected from number to Date
-} & RowDataPacket; // ✅ Ensures it's treated as a RowDataPacket
-
-type UserEmailRow = {
-  email: string;
-} & RowDataPacket; // ✅ Ensures it's treated as a RowDataPacket
-
-type QueryUser = (email: string) => Promise<UserRow[] | null>;
 
 /**
  * Retrieves all users from the database.
@@ -101,7 +88,7 @@ export const queryUserByEmail: QueryUser = async (email) => {
   }
 };
 
-export const selectUserEmail = async (userId: number): Promise<string | void> => {
+export const selectUserEmail: SelectUserEmail = async (userId: number) => {
   try {
     const [user] = await pool.query<UserEmailRow[]>("SELECT email FROM users WHERE id = ?", [
       userId,

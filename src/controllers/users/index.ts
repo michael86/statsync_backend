@@ -1,4 +1,3 @@
-import { RequestHandler } from "express";
 import {
   getUsersQuery,
   getUserQuery,
@@ -10,10 +9,9 @@ import dotenv from "dotenv";
 
 import { generateAndStoreTokens } from "../../utils/auth";
 import { deleteRefreshToken } from "../../queries/authQueries";
+import { GetUsers, LoginUser, LogoutUser, RegisterUser } from "src/types/userTypes";
 
 dotenv.config(); // Load environment variables from .env
-
-type GetUsers = RequestHandler<{ id?: string }>;
 
 /**
  * Retrieves all users or a specific user by ID.
@@ -22,7 +20,7 @@ type GetUsers = RequestHandler<{ id?: string }>;
  * @param {Response} res - The Express response object.
  * @returns {Promise<void>} Sends a JSON response with user data.
  */
-export const getUsers: GetUsers = async (req, res): Promise<void> => {
+export const getUsers: GetUsers = async (req, res) => {
   try {
     const data =
       req.params.id !== undefined ? await getUserQuery(+req.params.id) : await getUsersQuery();
@@ -34,12 +32,6 @@ export const getUsers: GetUsers = async (req, res): Promise<void> => {
   }
 };
 
-type RegisterUser = RequestHandler<
-  {}, // Route parameters (none in this case)
-  {}, // Response body (not explicitly defined)
-  { username: string; email: string; password: string } // Request body
->;
-
 /**
  * Registers a new user in the database.
  *
@@ -47,7 +39,7 @@ type RegisterUser = RequestHandler<
  * @param {Response} res - Express response object.
  * @returns {Promise<void>} Sends a success or error response.
  */
-export const registerUser: RegisterUser = async (req, res): Promise<void> => {
+export const registerUser: RegisterUser = async (req, res) => {
   const { email, password, username } = req.body;
 
   try {
@@ -65,13 +57,11 @@ export const registerUser: RegisterUser = async (req, res): Promise<void> => {
 
     const body = await generateAndStoreTokens(req, res, result, email);
 
-    res
-      .status(201)
-      .json({
-        status: "success",
-        message: "User registered",
-        body: { refresh_token: body.refreshToken },
-      });
+    res.status(201).json({
+      status: "success",
+      message: "User registered",
+      body: { refresh_token: body.refreshToken },
+    });
   } catch (error) {
     console.error("❌ Registration error:", error);
     res.status(500).json({ status: "error", message: "Failed to register user" });
@@ -85,7 +75,7 @@ export const registerUser: RegisterUser = async (req, res): Promise<void> => {
  * @param {Response} res - Express response object.
  * @returns {Promise<void>} Sends a success response with auth tokens or an error message.
  */
-export const loginUser: RequestHandler = async (req, res): Promise<void> => {
+export const loginUser: LoginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await queryUserByEmail(email);
@@ -95,7 +85,7 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
       return;
     }
 
-    const passwordMatch = await bcrypt.compare(password, user[0].password_hash);
+    const passwordMatch = await bcrypt.compare(password!, user[0].password_hash);
 
     if (!passwordMatch) {
       res.status(401).json({ status: "error", message: "Invalid credentials" });
@@ -122,7 +112,7 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
  * @param {Response} res - Express response object.
  * @returns {void} Sends a success response.
  */
-export const logoutUser: RequestHandler = async (req, res) => {
+export const logoutUser: LogoutUser = async (req, res) => {
   try {
     const tokenId = req.cookies.refresh_token_id;
 

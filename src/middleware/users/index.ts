@@ -1,5 +1,5 @@
+import { UserValidation } from "src/types/userTypes";
 import { isValidEmail, isValidPassword } from "../../utils/auth";
-import { RequestHandler } from "express";
 
 /**
  * Middleware to validate user registration input.
@@ -8,7 +8,7 @@ import { RequestHandler } from "express";
  * @param {Response} res - Express response object.
  * @param {Function} next - Express next middleware function.
  */
-export const registerUserValidation: RequestHandler = (req, res, next) => {
+export const registerUserValidation: UserValidation = (req, res, next) => {
   const { email, password, username } = req.body;
 
   if (!email || !password || !username) {
@@ -30,7 +30,7 @@ export const registerUserValidation: RequestHandler = (req, res, next) => {
     return;
   }
 
-  next();
+  return next();
 };
 
 /**
@@ -40,7 +40,7 @@ export const registerUserValidation: RequestHandler = (req, res, next) => {
  * @param {Response} res - Express response object.
  * @param {Function} next - Express next middleware function.
  */
-export const loginUserValidation: RequestHandler = (req, res, next) => {
+export const loginUserValidation: UserValidation = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {

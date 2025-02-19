@@ -1,23 +1,21 @@
-import { RequestHandler, Request } from "express";
-import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
-import { deleteRefreshToken, selectRefreshToken } from "../../queries/authQueries";
+import jwt, { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
+import { selectRefreshToken } from "../../queries/authQueries";
 import bcrypt from "bcryptjs";
 import { getClientFingerprint, invalidateSession } from "../../utils/auth";
-import { AuthenticatedRequest } from "../../types/authTypes";
-
-interface CustomJwtPayload extends JwtPayload {
-  id: string;
-  email: string;
-  role?: string;
-}
+import {
+  AuthenticatedRequest,
+  CustomJwtPayload,
+  ValidateJWT,
+  ValidateRefreshToken,
+} from "../../types/authTypes";
 
 // JWT Middleware
-export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next) => {
+export const validateJWT: ValidateJWT = async (req, res, next) => {
   try {
     const access_token: string | undefined = req.cookies?.access_token;
 
     if (!access_token) {
-      // browser may have deleted cookie due to expiration
+      // Browser may have deleted cookie due to expiration
       res.status(401).send({ status: "invalid token" });
       return;
     }
@@ -28,7 +26,7 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
     // Assign the decoded token data to req.user
     req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
 
-    next();
+    return next();
   } catch (error) {
     if (error instanceof TokenExpiredError || error instanceof JsonWebTokenError) {
       res.status(401).json({ error: "Token invalid or expired" });
@@ -36,14 +34,11 @@ export const validateJWT: RequestHandler = (req: AuthenticatedRequest, res, next
     }
 
     res.status(500).json({ error: "Internal server error" });
+    return;
   }
 };
 
-export const validateRefreshToken: RequestHandler = async (
-  req: AuthenticatedRequest,
-  res,
-  next
-) => {
+export const validateRefreshToken: ValidateRefreshToken = async (req, res, next) => {
   try {
     const { refresh_token_id } = req.cookies;
     const { refresh_token: clientToken } = req.body;
@@ -73,7 +68,7 @@ export const validateRefreshToken: RequestHandler = async (
 
     (req as AuthenticatedRequest).user = { id: refreshToken.user_id };
 
-    next();
+    return next();
   } catch (error) {
     console.error("❌ Refresh token validation error:", error);
     res.status(500).json({ status: "Server error" });

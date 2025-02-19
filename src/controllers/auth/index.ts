@@ -1,10 +1,9 @@
-import { RequestHandler } from "express";
 import { generateAndStoreTokens } from "../../utils/auth";
 import { selectUserEmail } from "../../queries/userQueries";
-import { AuthenticatedRequest } from "../../types/authTypes";
+import { IssueRefreshToken } from "../../types/authTypes";
 import { deleteRefreshToken } from "../../queries/authQueries";
 
-export const issueRefreshToken: RequestHandler = async (req: AuthenticatedRequest, res, next) => {
+export const issueRefreshToken: IssueRefreshToken = async (req, res) => {
   try {
     const userId = Number(req.user?.id);
     const { refresh_token_id } = req.cookies;
@@ -27,6 +26,5 @@ export const issueRefreshToken: RequestHandler = async (req: AuthenticatedReques
   } catch (error) {
     console.error("❌ Error in issueRefreshToken:", error);
     res.status(500).json({ status: "Internal server error" });
-    return;
   }
 };
