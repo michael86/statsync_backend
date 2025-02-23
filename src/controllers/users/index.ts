@@ -43,8 +43,8 @@ export const registerUser: RegisterUser = async (req, res) => {
   const { email, password, username } = req.body;
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await registerUserQuery(email, hashedPassword, username);
+    const hashedPassword = await bcrypt.hash(password!, 10);
+    const result = await registerUserQuery(email, hashedPassword, username!);
 
     if (result === "DUPLICATE_ENTRY") {
       res.status(409).json({ status: "error", message: "User already exists" });

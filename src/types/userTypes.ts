@@ -8,7 +8,7 @@ export type RegisterUser = (
   req: Request<
     {}, // No route parameters
     {}, // No specific response body type
-    { username: string; email: string; password: string } // Request body type
+    UserBody // Request body type
   >,
   res: Response
 ) => Promise<void>;
