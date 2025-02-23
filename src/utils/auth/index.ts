@@ -9,7 +9,6 @@ const isProduction = process.env.NODE_ENV === "production";
 
 interface JwtPayload {
   id: number;
-  email: string;
 }
 
 type JwtExpiry = "1m" | "15m" | "30m" | "1h" | "6h" | "12h" | "24h" | "30d";
@@ -96,7 +95,7 @@ export const generateAndStoreTokens = async (
 ): Promise<{ refreshToken: string; accessToken: string; refreshTokenId: string }> => {
   const { deviceIp, userAgent } = getClientFingerprint(req);
 
-  const accessToken = generateJwtToken("15m", { id: userId, email });
+  const accessToken = generateJwtToken("15m", { id: userId });
   const { uuid: refreshUid, refreshToken } = generateRefreshToken();
 
   const expiresAt = new Date();
@@ -141,7 +140,7 @@ export const invalidateSession = async (
     const deleted = await deleteRefreshToken(tokenId);
 
     if (!deleted) {
-      console.warn(`⚠️ No refresh token found for ID: ${tokenId}`);
+      console.warn(`No refresh token found for ID: ${tokenId}`);
       res.status(403).json({ status: "invalid refresh token" });
       return;
     }

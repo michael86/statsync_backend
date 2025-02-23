@@ -1,6 +1,13 @@
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
-import { QueryUser, SelectUserEmail, UserEmailRow, UserRow } from "src/types/queryTypes";
+import {
+  QueryUser,
+  SelectUserEmail,
+  SelectUserUsername,
+  UserEmailRow,
+  UserRow,
+  UserUsernameRow,
+} from "src/types/queryTypes";
 
 type RegisterUser = (
   email: string,
@@ -100,7 +107,24 @@ export const selectUserEmail: SelectUserEmail = async (userId: number) => {
 
     return user[0].email; // ✅ Safe access, no `.length` error
   } catch (error) {
-    console.error("❌ Error selecting user email:", error);
+    console.error(" Error selecting user email:", error);
+    return;
+  }
+};
+
+export const selectUserUsername: SelectUserUsername = async (userId: number) => {
+  try {
+    const [user] = await pool.query<UserUsernameRow[]>("SELECT username FROM users WHERE id = ?", [
+      userId,
+    ]);
+
+    if (user.length === 0) {
+      return;
+    }
+
+    return user[0].username; // ✅ Safe access, no `.length` error
+  } catch (error) {
+    console.error(" Error selecting user username:", error);
     return;
   }
 };

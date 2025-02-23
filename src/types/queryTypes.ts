@@ -34,6 +34,11 @@ export type UserRow = {
 
 export type UserEmailRow = {
   email: string;
-} & RowDataPacket; // ✅ Ensures it's treated as a RowDataPacket
+} & RowDataPacket; // Ensures it's treated as a RowDataPacket
+
+export type UserUsernameRow = {
+  username: string;
+} & RowDataPacket;
 
 export type SelectUserEmail = (userId: number) => Promise<string | void>;
+export type SelectUserUsername = (userId: number) => Promise<string | void>;

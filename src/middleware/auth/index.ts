@@ -1,13 +1,18 @@
-import jwt, { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
+import jwt, { TokenExpiredError, JsonWebTokenError, JwtPayload } from "jsonwebtoken";
 import { selectRefreshToken } from "../../queries/authQueries";
 import bcrypt from "bcryptjs";
 import { getClientFingerprint, invalidateSession } from "../../utils/auth";
 import {
-  AuthenticatedRequest,
   CustomJwtPayload,
   ValidateJWT,
+  ValidateMe,
   ValidateRefreshToken,
 } from "../../types/authTypes";
+
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
 
 // JWT Middleware
 export const validateJWT: ValidateJWT = async (req, res, next) => {
@@ -23,8 +28,10 @@ export const validateJWT: ValidateJWT = async (req, res, next) => {
     // Verify the access token
     const decoded = jwt.verify(access_token, process.env.JWT_SECRET as string) as CustomJwtPayload;
 
+    if (!req.user) req.user = { id: "" };
+
     // Assign the decoded token data to req.user
-    req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
+    req.user = { id: decoded.id, role: decoded.role };
 
     return next();
   } catch (error) {
@@ -66,12 +73,39 @@ export const validateRefreshToken: ValidateRefreshToken = async (req, res, next)
       return;
     }
 
-    (req as AuthenticatedRequest).user = { id: refreshToken.user_id };
+    req.user = { id: refreshToken.user_id };
 
     return next();
   } catch (error) {
     console.error("❌ Refresh token validation error:", error);
     res.status(500).json({ status: "Server error" });
+    return;
+  }
+};
+
+export const validateMe: ValidateMe = async (req, res, next) => {
+  try {
+    const { access_token: accessToken } = req.cookies;
+
+    if (!accessToken) {
+      invalidateSession(res, "Invalid request");
+      return;
+    }
+
+    const tokenValid = jwt.verify(accessToken, SECRET) as CustomJwtPayload;
+
+    req.user = { id: tokenValid.id };
+
+    next();
+    return;
+  } catch (error) {
+    if (error instanceof JsonWebTokenError) {
+      invalidateSession(res, "Invalid Request");
+      return;
+    }
+
+    console.error(`error validating me route\n${error}`);
+    res.status(500).send();
     return;
   }
 };

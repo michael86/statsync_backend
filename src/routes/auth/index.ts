@@ -1,10 +1,11 @@
 import { Router } from "express";
 
-import { validateRefreshToken } from "../../middleware/auth";
-import { issueRefreshToken } from "../../controllers/auth";
+import { validateMe, validateRefreshToken } from "../../middleware/auth";
+import { issueRefreshToken, meController } from "../../controllers/auth";
 
 const router = Router();
 
 router.post("/refresh", validateRefreshToken, issueRefreshToken);
+router.get("/me", validateMe, meController);
 
 export default router;
