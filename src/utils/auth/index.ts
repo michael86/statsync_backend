@@ -139,14 +139,10 @@ export const invalidateSession = async (
   if (tokenId) {
     const deleted = await deleteRefreshToken(tokenId);
 
-    if (!deleted) {
-      console.warn(`No refresh token found for ID: ${tokenId}`);
-      res.status(403).json({ status: "invalid refresh token" });
-      return;
-    }
+    if (!deleted) console.warn(`No refresh token found for ID: ${tokenId}`);
   }
 
-  res.status(403).json({ status: message });
+  res.status(401).json({ status: message });
 };
 
 /**

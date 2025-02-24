@@ -31,6 +31,7 @@ export const issueRefreshToken: IssueRefreshToken = async (req, res) => {
 
 export const meController: MeController = async (req, res) => {
   try {
+    console.log("in me controller");
     if (!req.user)
       throw new Error(`User does not exist on meController.\nExpected behaviour, to be there! `);
 
@@ -46,7 +47,6 @@ export const meController: MeController = async (req, res) => {
       username: await selectUserUsername(id),
     };
 
-    console.log(user);
     if (!user.email || !user.username) {
       res.status(401).json({ status: "error", message: "user doesn't exist" });
       return;

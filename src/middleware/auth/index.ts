@@ -86,7 +86,6 @@ export const validateRefreshToken: ValidateRefreshToken = async (req, res, next)
 export const validateMe: ValidateMe = async (req, res, next) => {
   try {
     const { access_token: accessToken } = req.cookies;
-
     if (!accessToken) {
       invalidateSession(res, "Invalid request");
       return;
